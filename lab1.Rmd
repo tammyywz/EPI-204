@@ -1,0 +1,135 @@
+---
+title: "lab1"
+author: "Yunwei Zhang"
+date: "April 4, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+no.yes <- c("No","Yes")
+smoking <- gl(2,1,8,no.yes)
+obesity <- gl(2,2,8,no.yes)
+snoring <- gl(2,4,8,no.yes)
+n.tot <- c(60,17,8,2,187,85,51,23)
+n.hyp <- c(5,2,1,0,35,13,15,8)
+hyp <- data.frame(smoking,obesity,snoring,n.tot,n.hyp,n.hyp/n.tot)
+hyp
+```
+
+```{r}
+#Specify the disease and normal for each cell as a matrix with one column consisting of the number of diseased persons, and the other the number of normals
+hyp.tbl <- cbind(n.hyp, n.tot-n.hyp)
+hyp.tbl
+glm.hyp1 <- glm(hyp.tbl ~ smoking+obesity+snoring,family=binomial("logit"))
+glm.hyp2 <- glm(hyp.tbl ~ smoking+obesity+snoring,binomial)
+
+#specify the proportions as a response, with weights equal to the sample size
+prop.hyp <- n.hyp/n.tot
+glm.hyp3 <- glm(prop.hyp ~ smoking+obesity+snoring,binomial,weights=n.tot)
+
+
+
+
+
+```
+
+```{r}
+summary(glm.hyp1)
+summary(glm.hyp2)
+summary(glm.hyp3)
+
+```
+
+```{r}
+# to obtain beta estimates
+coef(glm.hyp2)
+
+
+# to obtain odds ratio
+exp(coef(glm.hyp2))
+
+
+# to obtain 95% CI on the log scale
+confint.default(glm.hyp2)
+
+
+# to obtain 95% CI on the original scale
+exp(confint.default(glm.hyp2))
+ 
+
+
+```
+
+```{r}
+predict(glm.hyp1)
+predict(glm.hyp1,type="response")
+?predict.glm
+#proportion compare
+rbind(predict(glm.hyp1,type="response"),prop.hyp)
+#value compare
+rbind(predict(glm.hyp1,type="response")*n.tot,n.hyp)
+
+
+```
+
+```{r}
+library(ISwR)
+data(juul)
+juul1 <- subset(juul,age > 8 & age < 20 & complete.cases(menarche))
+
+#Girls between 8 and 20.
+summary(juul1)
+
+
+
+
+```
+
+```{r}
+# for categorical predictors
+juul1$menarche <- factor(juul1$menarche,labels=c("No","Yes"))
+juul1$tanner <- factor(juul1$tanner)
+attach(juul1)
+summary(glm(menarche ~ age,binomial))
+
+
+?attach
+
+```
+
+```{r}
+summary(glm(menarche ~ age+tanner,binomial))
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

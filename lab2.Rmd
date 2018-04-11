@@ -1,0 +1,297 @@
+---
+title: "lab 2"
+author: "Yunwei Zhang"
+date: "April 9, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Juul's IGF data
+Description
+The juul data frame has 1339 rows and 6 columns. It contains a reference sample
+of the distribution of insulin-like growth factor (IGF-1), one observation per
+subject in various ages with the bulk of the data collected in connection with
+school physical examinations.
+Format
+This data frame contains the following columns:
+age: a numeric vector (years).
+menarche: a numeric vector. Has menarche occurred (code 1: no, 2: yes)?
+sex: a numeric vector (1: boy, 2: girl).
+igf1: a numeric vector. Insulin-like growth factor.
+tanner: a numeric vector. Codes 1-5: Stages of puberty a.m. Tanner.
+testvol: a numeric vector. Testicular volume (ml). 
+
+```{r}
+#install.packages("ISwR")
+library("ISwR")
+
+data(juul)
+
+#do not want to entire data
+juul1 <- subset(juul,age > 8 & age < 20 & complete.cases(menarche))
+summary(juul1)
+
+
+```
+
+
+```{r}
+#factor needed
+juul1$menarche <- factor(juul1$menarche,labels=c("No","Yes"))
+juul1$tanner <- factor(juul1$tanner)
+attach(juul1)
+
+#perform logistic regression
+summary(glm(menarche ~ age,binomial))
+
+
+```
+
+```{r}
+summary(glm(menarche ~ age+tanner,binomial))
+
+
+```
+
+
+Log odds ratio for one year increase in age is
+
+
+
+
+
+
+
+
+
+0.8603
+Odds ratio is 
+
+
+
+
+
+
+
+
+exp(0.8603) = 2.364
+Log odds ratio for a two year increase in age is 
+
+
+
+
+
+
+
+
+
+
+(2)(0.8603) = 1.7206
+Odds ratio is 
+
+
+
+
+
+
+
+
+
+exp(1.7206) = 5.588
+All these holding tanner score constant
+Log odds ratio for tanner 4 vs. tanner 1 is 
+
+
+
+
+
+
+
+
+2.5645
+Odds ratio is 
+
+
+
+
+
+
+
+
+
+
+
+
+
+exp(2.5645) = 12.994
+Log odds ratio for tanner 4 vs. tanner 3 is 
+
+
+
+
+
+
+
+
+
+
+
+2.5645 - 0.8264 = 1.7381
+Odds ratio is 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+exp(1.7381) = 5.687
+All these holding age constant
+
+
+Can you get the confidence interval for the parameters?
+Can you get the predicted value?
+
+
+
+```{r}
+write.table(juul,file="juul.txt")
+
+confint.default(glm(menarche ~ age+tanner,binomial))
+#predict(glm(menarche ~ age+tanner,binomial),type = "response")
+```
+
+Evans County, GA Dataset (1963)
+??? Data are in evans.dat (text, no header), evans.sas7bdat
+(SAS version 9 dataset), evans.sav (SPSS dataset), and
+evans.dta (Stata dataset) on the website given in the
+syllabus.
+??? The data are from a cohort study in which 609 white
+males were followed for 7 years, with coronary heart
+disease as the outcome of interest.
+
+read.table, read.csv, etc. are all variants that
+can handle text file input with different
+defaults.
+By default, reads strings as factors, unless
+stringsAsFactors=F. Often this option is a good
+idea.
+
+Variable Description
+ID Subject ID, one observation per subject
+CHD Coronary heart disease (1) or not (0)
+CAT High catecholamine level (1) or not (0)
+AGE Age in years
+CHL Cholesterol level (mg/dL)
+SMK Ever smoked (1) or never smoked (0)
+ECG ECG abnormality (1) or not (0)
+DBP Diastolic blood pressure (mm)
+SBP Systolic blood pressure (mm)
+HPT = 1 if DBP ???90 or SBP ??? 160, otherwise = 0
+CH CAT*HPT
+CC CAT*CHL
+```{r}
+vars <- c("ID","CHD","CAT","AGE","CHL","SMK","ECG","DBP","SBP","HPT","CH","CC")
+evans <- read.table("D:\\school in california\\Aucdavis\\TA\\hw3\\lesson data.txt",header=F,col.names=vars)
+summary(evans)
+ plot(SBP ~ AGE, data=evans) #Systolic Blood Pressure vs. Age
+abline(coef(lm(SBP~AGE,data=evans)),lwd=2) #Puts regression line on the plot
+abline(h=140,col="blue",lwd=2) #line at current hypertension threshold
+abline(h=160,col="red",lwd=2) #line at hypertension threshold used in study
+title("Systolic Blood Pressure by Age")
+```
+
+
+```{r}
+model1=glm(CHD~CAT+AGE+CHL+SMK+HPT,family=binomial,data=evans)
+summary(model1)
+
+
+```
+
+```{r}
+
+
+
+```
+
+
+
+
+
+
+
+
+
+```{r}
+anova(glm(menarche ~ age+tanner,binomial),test="Chisq")
+
+```
+
+
+
+
+
+Question:how to choose the predictors to be included to get the best regression?
+i.e. whether to include the square or not whether to include interaction term or not?
+
+
+
+```{r}
+ drop1(glm(menarche ~ age+tanner,binomial),test="Chisq")
+
+```
+
+
+??? The deviance under the normal distribution is just the residual sum of squares.
+??? Changes in normal deviance is usually assessed by the F- test in an ANOVA table.
+??? For logistic regression, differences in deviance are assessed using the chi-squared distribution with degrees of freedom equal to the number of parameters omitted between the
+larger and smaller model.
+??? The latter test is approximate (asymptotic).
+??? Tests of coefficients are based on the Wald test in which we have an estimate and an estimated variance. This too is approximate and not identical to the likelihood ratio
+(deviance) test.
+
+```{r}
+deviance(glm(hyp.tbl ~ smoking+obesity+snoring,family=binomial))
+
+deviance(glm(hyp.tbl ~ smoking*obesity*snoring,family=binomial))
+
+deviance(glm(hyp.tbl ~ 1,family=binomial))
+
+logLik(glm(hyp.tbl ~ smoking+obesity+snoring,family=binomial))
+
+logLik(glm(hyp.tbl ~ smoking*obesity*snoring,family=binomial))
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

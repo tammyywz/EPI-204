@@ -1,0 +1,179 @@
+---
+title: "lab4"
+author: "Yunwei Zhang"
+date: "April 16, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Confidence interval topic
+
+First of all, we will take a look at the evans data:
+```{r}
+vars <- c("ID","CHD","CAT","AGE","CHL","SMK","ECG","DBP","SBP","HPT","CH","CC")
+evans <- read.table("D:\\school in california\\Aucdavis\\TA\\hw3\\lesson data.txt",header=F,col.names=vars)
+summary(evans)
+
+
+```
+
+Build a model and check the coefficient of it.
+```{r}
+model1=glm(CHD~CAT+CHL+SMK+HPT+CAT*CHL+CAT*HPT,binomial,data=evans)
+summary(model1)
+coef(model1)
+```
+
+##Notice that:
+Confidence intervals and tests for single coefficients
+are given in the summary(glm()) output or are easily
+derived.
+
+## some preparation for calculating C.I.(confidence interval) for interaction terms or categorical data has multi-levels or also different contrast.
+Interaction Terms
+??? An interaction means that the effect of one variable
+depends on the level of another.
+??? To get a numerical measure of effect such as odds ratio,
+we need to specify the level of the other one.
+??? We can set the other variable at the modal level, the
+median level, or the mean level, or at a variety of levels
+
+
+Contrasts
+??? A contrast is a weighted combination of factor levels in
+which the weights add up to 1.
+??? We can change the coding of a factor with five levels
+from an intercept and four 0/1 variables to a set of
+contrasts.
+??? This can be complex and hard to implement.
+??? There are other R packages that can handle these
+separately such as multcomp. But personally, I do not recommand you to use that.
+
+
+We need the quantile
+```{r}
+t=qnorm(0.975)
+t
+#qchisq()
+```
+
+
+We need to do more work to find confidence intervals
+and tests for differences of coefficients as when a factor
+has more than two levels.
+The same trick allows us to get confidence intervals
+and tests for interaction terms.
+
+```{r}
+model2<-glm(CHD~CAT+CHL+HPT+CAT*HPT,binomial,evans)
+c1 <- coef(model2)
+v1 <- vcov(model2)
+c1
+v1
+```
+
+```{r}
+#calculate the "new mean"
+b1 <- c(0,1,0,0,1) 
+t(b1) %*% c1
+
+
+```
+
+Effect of CAT when HPT = 1 is 2.191 - 1.681 = 0.5093 
+
+```{r}
+ v <- vcov(model2)
+v
+#calculate the "new variance"
+t(b1) %*% v %*% b1
+```
+
+```{r}
+#take the square root
+sqrt(t(b1) %*% v %*% b1)
+
+```
+Log odds ratio CI is 0.5093 ± (1.960)(0.3529) 
+
+
+
+##some introduction of the Byssinosis data for doing hw2
+
+```{r}
+dt1<-read.csv("D:\\school in california\\Aucdavis\\TA\\hw2\\Byssinosis.csv")
+dt1$Smoking=factor(dt1$Smoking)
+dt1$Sex=factor(dt1$Sex)
+dt1$Race=factor(dt1$Race)
+dt1$Workspace=factor(dt1$Workspace)
+dt1$Employment=factor(dt1$Employment)
+dt1$y=cbind(dt1$Byssinosis,dt1$Non.Byssinosis)
+model1<-glm(dt1$y~Smoking+Sex+Race+Employment+Workspace,data=dt1,binomial)
+summary(model1)
+anova(model1)
+
+
+
+```
+
+Interaction Terms
+??? An interaction means that the effect of one variable
+depends on the level of another.
+??? To get a numerical measure of effect such as odds ratio,
+we need to specify the level of the other one.
+??? We can set the other variable at the modal level, the
+median level, or the mean level, or at a variety of levels
+
+##Alternative:using the evans data before
+We can re-run the analysis with a different default level for the categorical variable so that the desired comparison is a single
+coefficient.
+
+relevel {stats} Reorder Levels of Factor
+The levels of a factor are re-ordered so that the
+level specified by ref is first and the others are
+moved down.
+relevel(x, ref, ...)
+x an unordered factor.
+ref the reference level, typically a string.
+
+Variable Description
+
+ID Subject ID, one observation per subject
+CHD Coronary heart disease (1) or not (0)
+CAT High catecholamine level (1) or not (0)
+AGE Age in years
+CHL Cholesterol level (mg/dL)
+SMK Ever smoked (1) or never smoked (0)
+ECG ECG abnormality (1) or not (0)
+DBP Diastolic blood pressure (mm)
+SBP Systolic blood pressure (mm)
+HPT = 1 if DBP ???90 or SBP ??? 160, otherwise = 0
+CH CAT*HPT
+CC CAT*CHL
+```{r}
+?relevel
+
+evans$SMK<-relevel(evans$SMK,ref=0)
+evans$SMK
+#make the data more readable: let 0 becomes no and 1 becomes yes for example.
+evans$SMK[evans$SMK==0]="no"
+evans$SMK
+evans$SMK[evans$SMK==1]="yes"
+evans$SMK=factor(evans$SMK)
+evans$SMK<-relevel(evans$SMK,ref="yes")
+```
+
+
+
+
+
+
+
+
+
+
+
+

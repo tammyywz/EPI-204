@@ -1,0 +1,113 @@
+---
+title: "lab3 20180412"
+author: "Yunwei Zhang"
+date: "April 12, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Note : I am using Rmarkdown here since you can write English , write Latex, make title, etc easily between what we called "chuck" (where you write your code).
+
+##evans data and model selection
+
+###Today we will focus mostly on how to do model selection on the evans data.
+Belows are the discription of the evans data.
+
+Evans County, GA Dataset (1963)
+??? Data are in evans.dat (text, no header), evans.sas7bdat
+(SAS version 9 dataset), evans.sav (SPSS dataset), and
+evans.dta (Stata dataset) on the website given in the
+syllabus.
+??? The data are from a cohort study in which 609 white
+males were followed for 7 years, with coronary heart
+disease as the outcome of interest.
+
+
+Variable Description
+
+ID Subject ID, one observation per subject
+CHD Coronary heart disease (1) or not (0)
+CAT High catecholamine level (1) or not (0)
+AGE Age in years
+CHL Cholesterol level (mg/dL)
+SMK Ever smoked (1) or never smoked (0)
+ECG ECG abnormality (1) or not (0)
+DBP Diastolic blood pressure (mm)
+SBP Systolic blood pressure (mm)
+HPT = 1 if DBP 90 or SBP 160, otherwise = 0
+CH CAT*HPT
+CC CAT*CHL
+
+```{r}
+#since the txt file does not have the column names, we add the columns of our predictors and dependent variable by hand
+vars <- c("ID","CHD","CAT","AGE","CHL","SMK","ECG","DBP","SBP","HPT","CH","CC")
+#load the data, notice that "header=False"
+evans <- read.table("D:\\school in california\\Aucdavis\\TA\\hw3\\lesson data.txt",header=F,col.names=vars)
+#preview of the data
+summary(evans)
+
+```
+
+```{r}
+#fit the full model
+#I will let you figure out which predictors should be factored, belows are just code examples.
+model1=glm(CHD~CAT+AGE+CHL+SMK+HPT,family=binomial,data=evans)
+#get the summary
+summary(model1)
+
+
+```
+
+```{r}
+#for the reduced model ,you can do whatever you want.
+#I use the one has the intersection term as an example.
+model2<-glm(CHD~CAT+AGE+CAT*AGE,family=binomial,data=evans)
+summary(model2)
+
+
+```
+
+
+#There are the summary of the commands you can use to judge your model based on what knid of criteria you want to use.
+
+```{r}
+#get all the deviance from the glm model
+anova(model1)
+anova(model2)
+#get the AIC
+AIC(model1)
+#get the deviance
+deviance(model1)
+#get the loglikelihood
+logLik(model1)
+
+```
+
+#backward elimination method for model selection
+
+```{r}
+#drop one term at a time
+drop1(model1,test="Chisq")
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

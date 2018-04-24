@@ -1,0 +1,96 @@
+---
+title: "lab5"
+author: "Yunwei Zhang"
+date: "April 18, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##important feedback on hw
+
+#hw1
+For students: you need to be careful if you use odds ratio inference group/A(our normal/diabetic in the question) in your interpretation, since in the output, what you directly get is A/inference group.
+
+#hw2
+1.Same problem for question 2 part 1 as in hw1.
+2.For question 2 the last part, some students get the wrong deviance, you need to be careful.
+
+##topic:model selection
+
+```{r}
+#add1() drop1() methods
+
+#using evans data
+vars <- c("ID","CHD","CAT","AGE","CHL","SMK","ECG","DBP","SBP","HPT","CH","CC")
+#load the data, notice that "header=False"
+evans <- read.table("D:\\school in california\\Aucdavis\\TA\\hw3\\lesson data.txt",header=F,col.names=vars)
+
+```
+
+drop1 starts from the full model
+drop1(object, scope, test = c("none", "Rao", "LRT",
+"Chisq", "F"),k = 2, ...)
+
+object :your glm model
+scope is the set of things that can be dropped. Usually,
+this is omitted, meaning that any term in the model can be
+dropped, though hierarchy of interactions is respected
+automatically.
+
+test is for logistic regression usually "Chisq" or "LRT",
+both of which produce the likelihood ratio test.
+
+```{r}
+model1<-glm(CHD ~ CAT+CHL+SMK+HPT,family=binomial,data=evans)
+ drop1(model1,test="Chisq")
+```
+
+
+As for add1 you can specify the "scope" to define the range where r can choose to add for your existing model.
+
+
+```{r}
+add1(model1,scope=~CAT*CHL*SMK*HPT,test="Chisq")
+```
+
+Best AIC from adding CAT:CHL, next best from adding CAT:HPT.
+HPT not significant, but AIC and significant interaction don't suggest
+dropping. 
+
+##stepwise method
+
+
+Backward stepwise only drops terms.
+Forward stepwise only adds terms.
+Default is "both" which can either add or drop,
+whichever provides the most improvement.
+
+```{r}
+step(model1,scope=~CAT*CHL*SMK*HPT)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
